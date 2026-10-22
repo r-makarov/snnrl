@@ -1,0 +1,22 @@
+#   conda env create -f environment.yaml
+#   conda activate snnrl
+#   pip install -e .
+
+name: snnrl
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - jupyterlab=4.6
+  - ipykernel=7.3
+  - pip:
+      # JAX ecosystem
+      - jax[cuda12]==0.10.2
+      - optax==0.2.8
+      - flax==0.12.8 # flax.struct dataclasses; linen for the neuromodRNNs reference cell
+      - gymnax==0.0.9 # classic RL benchmarks (CartPole)
+      # Other dependencies
+      - numpy==2.4.6
+      - matplotlib==3.11.1
+      - bokeh==3.9.2 # figures for the GitHub Pages site

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "snnrl"
+version = "0.1.0"
+description = "Recurrent spiking networks trained in closed loop with RL environments"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Roman Makarov" }]
+requires-python = ">=3.11"
+# Versions are pinned in environment.yaml
+dependencies = ["jax", "optax", "flax", "gymnax", "numpy", "bokeh"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
