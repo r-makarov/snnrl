@@ -16,6 +16,10 @@ class ALIFParams:
     gamma: float = 0.3 # dampening factor of the pseudo-derivative
     n_ref: int = 5 # refractory period (time steps)
     dt: float = 1.0 # time step (ms)
+    # e-prop: no gradient through the spikes z_t where they enter
+    # the next step's reset and recurrent input 
+    # (the gradient through the adaptation is kept).
+    stop_z_gradient: bool = struct.field(pytree_node=False, default=False)
 
     @property
     def alpha(self) -> jax.Array:
@@ -169,7 +173,9 @@ def step(state: ALIFState, input_current: jax.Array, params: ALIFParams) -> ALIF
         State at time t + 1.
     """
     # 1. Update the membrane potential and adaptation variable
-    v = params.alpha * state.v + input_current - params.v_th * state.z
+    # With e-prop, the reset passes no gradient back to z_t
+    z_reset = jax.lax.stop_gradient(state.z) if params.stop_z_gradient else state.z
+    v = params.alpha * state.v + input_current - params.v_th * z_reset
     a = params.rho * state.a + state.z
 
     # 2. Update the refractory counter (`where` over neurons)
@@ -209,7 +215,7 @@ def run(input_current: jax.Array,
     -------
     final_state: ALIFState
         State at time step T.
-    history: ALIFState
+    states: ALIFState
         States at time steps 1..T, each field of shape (T, n).
     """
     if state is None:
@@ -219,5 +225,5 @@ def run(input_current: jax.Array,
         new_state = step(state, current, params)
         return new_state, new_state
 
-    final_state, history = jax.lax.scan(step_fn, state, input_current)
-    return final_state, history
+    final_state, states = jax.lax.scan(step_fn, state, input_current)
+    return final_state, states

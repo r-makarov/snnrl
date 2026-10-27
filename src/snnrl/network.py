@@ -149,7 +149,9 @@ def step(
         State at time t + 1 and readout y_{t+1}, shape (n_out,).
     """
     # 1. Compute the input current to the recurrent population
-    input_current = x @ weights.w_in + state.neuron.z @ (weights.w_rec * params.rec_mask)
+    # With e-prop, the recurrent input passes no gradient back to z_t
+    z_rec = jax.lax.stop_gradient(state.neuron.z) if params.neuron.stop_z_gradient else state.neuron.z
+    input_current = x @ weights.w_in + z_rec @ (weights.w_rec * params.rec_mask)
 
     # 2. Update the recurrent population
     neuron = neuron_step(state.neuron, input_current, params.neuron)
@@ -188,7 +190,7 @@ def run(
     -------
     final_state: NetworkState
         State at time step T.
-    history: NetworkState
+    states: NetworkState
         States at time steps 1..T, each field with a leading time axis.
     y: jax.Array
         Readouts at time steps 1..T, shape (T, n_out).
@@ -200,5 +202,5 @@ def run(
         new_state, y = step(state, xt, weights, params)
         return new_state, (new_state, y)
 
-    final_state, (history, y) = jax.lax.scan(step_fn, state, x)
-    return final_state, history, y
+    final_state, (states, y) = jax.lax.scan(step_fn, state, x)
+    return final_state, states, y
