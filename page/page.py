@@ -141,8 +141,10 @@ slider.end = e.length - 1
 slider.value = 0
 """
 
-# Play or pause: advance the slider every interval until the end of the episode
+# Play or pause: advance the slider every interval until the end of the episode.
+# The speed is fixed while playing, since the interval is set when playback starts.
 PLAY_CALLBACK = """
+speed.disabled = toggle.active
 if (toggle.active) {
     toggle.label = 'Pause'
     if (slider.value >= slider.end) { slider.value = 0 }
@@ -156,14 +158,6 @@ if (toggle.active) {
 } else {
     toggle.label = 'Play'
     clearInterval(window.snnrl_timer)
-}
-"""
-
-# A new speed while playing takes effect at once (pause and play again with the new interval)
-SPEED_CALLBACK = """
-if (toggle.active) {
-    toggle.active = false
-    toggle.active = true
 }
 """
 
@@ -390,8 +384,6 @@ class View:
             args=dict(toggle=self.widgets["play"], slider=self.widgets["slider"], speed=self.widgets["speed"]),
             code=PLAY_CALLBACK,
         ))
-        self.widgets["speed"].js_on_change("value", CustomJS(
-            args=dict(toggle=self.widgets["play"]), code=SPEED_CALLBACK))
 
     # Page layout
     def create_layout(self):
